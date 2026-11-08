@@ -1,0 +1,26 @@
+flowchart TB
+ U[React JavaScript UI] --> API[Spring Web API]
+ API --> Q[Query service and job workers]
+ API --> D[Document service]
+ Q --> P[Gemini structured planner]
+ P --> S[Validated SQL templates]
+ S --> C[(Customer PostgreSQL)]
+ S --> O[(Order PostgreSQL)]
+ S --> B[(Product PostgreSQL)]
+ C --> J[Java record association]
+ O --> J
+ B --> J
+ D --> M[(Metadata in product DB app schema)]
+ D --> F[(Uploaded files)]
+ M --> K[Kafka pending-work dispatcher]
+ K --> L[Kafka ingestion consumer]
+ L --> E[PDFBox or POI extraction and chunks]
+ E --> A[Gemini embeddings]
+ A --> V[(Qdrant)]
+ J --> H[Hybrid evidence selection]
+ V --> H
+ H --> G[Gemini grounded answer]
+ G --> Q
+ Q --> R[(Redis cache)]
+ Q --> M
+ Q --> API

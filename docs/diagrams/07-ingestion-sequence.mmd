@@ -1,0 +1,27 @@
+sequenceDiagram
+ actor User
+ participant API as Upload API
+ participant Files as File volume
+ participant DB as PostgreSQL documents
+ participant Dispatch as Scheduled dispatcher
+ participant Kafka
+ participant Consumer as Ingestion consumer
+ participant AI as Gemini embeddings
+ participant Vector as Qdrant
+ User->>API: File and optional association IDs
+ API->>API: Validate format, size, text and fingerprint
+ API->>Files: Save UUID-named bytes
+ API->>DB: Save QUEUED document
+ API-->>User: 202 and document ID
+ Dispatch->>DB: Find due QUEUED documents
+ Dispatch->>Kafka: Publish document ID
+ Kafka->>Consumer: At-least-once delivery
+ Consumer->>DB: Check state and mark PROCESSING
+ Consumer->>Files: Read original bytes
+ Consumer->>Consumer: Extract and chunk
+ Consumer->>AI: Embed chunks
+ AI-->>Consumer: Embeddings
+ Consumer->>Vector: Upsert stable chunk IDs
+ Vector-->>Consumer: Persisted acknowledgement
+ Consumer->>DB: READY with chunk count
+ Note over Consumer,DB: On failure, requeue with backoff. After three attempts mark FAILED.

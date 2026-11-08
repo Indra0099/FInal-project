@@ -1,0 +1,9 @@
+flowchart LR
+ Q[Purchase query for customer 101] --> Product[(Product database)]
+ Q --> Hash[101 modulo 3 equals 2]
+ Hash --> Order[(Order database bucket 2)]
+ Hash --> Customer[(Customer database bucket 2)]
+ Product --> Join[Java association by product and customer IDs]
+ Order --> Join
+ Customer --> Join
+ Join --> Evidence[Qdrant filter for matched product and customer pairs]

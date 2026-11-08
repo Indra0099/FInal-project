@@ -1,0 +1,7 @@
+simulation: shardquery-openai-contract
+routing: path
+mocks:
+  - name: openai-contract
+    routeKey: openai
+    origin: [generativelanguage.googleapis.com]
+    path: postman/mocks/openai-contract

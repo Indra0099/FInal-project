@@ -1,0 +1,39 @@
+erDiagram
+    USERS ||--o{ USER_DATABASES : owns
+    USERS ||--o{ DOCUMENTS : uploads
+    USERS ||--o{ QUERY_JOBS : submits
+    USER_DATABASES ||--o{ USER_TABLES : contains
+    USERS {
+        uuid id PK
+        varchar name
+        varchar email UK
+        varchar password_hash
+        timestamptz created_at
+    }
+    USER_DATABASES {
+        uuid id PK
+        uuid user_id FK
+        varchar name
+        varchar physical_name UK
+        varchar status
+        timestamptz created_at
+    }
+    USER_TABLES {
+        uuid id PK
+        uuid database_id FK
+        varchar name
+        varchar physical_name UK
+        text columns_json
+        timestamptz created_at
+    }
+    DOCUMENTS {
+        uuid id PK
+        uuid user_id FK
+        varchar status
+    }
+    QUERY_JOBS {
+        uuid id PK
+        uuid user_id FK
+        text question
+        text result_json
+    }

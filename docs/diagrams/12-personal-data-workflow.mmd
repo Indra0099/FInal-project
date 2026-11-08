@@ -1,0 +1,15 @@
+flowchart TD
+    A[Signed-in user opens My databases] --> B[Enter database name]
+    B --> C[Validate account quota and name]
+    C --> D[Persist CREATING metadata with owner]
+    D --> E[CREATE DATABASE with server-generated identifier]
+    E --> F{Creation successful?}
+    F -->|No| G[Mark FAILED and allow owner retry]
+    G --> E
+    F -->|Yes| H[Mark READY]
+    H --> I[Define table columns and approved data types]
+    I --> J[Validate ownership, names and limits]
+    J --> K[Create real PostgreSQL table]
+    K --> L[Add or edit row through form]
+    L --> M[Validate values and bind SQL parameters]
+    M --> N[Persist row and refresh paginated grid]

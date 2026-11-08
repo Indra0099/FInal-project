@@ -1,0 +1,129 @@
+{
+  "id": "e296f6a5-fcae-41b0-8907-b7da903c6c57",
+  "question": "Cache verification 8c9afeb6-553a-4d37-8e12-52cf9d538448",
+  "mode": "SQL",
+  "status": "COMPLETE",
+  "createdAt": "2026-11-08T02:56:25.210043Z",
+  "completedAt": "2026-11-08T02:56:25.231636Z",
+  "error": null,
+  "result": {
+    "mode": "SQL",
+    "answer": "Retrieved 4 matching records from the selected databases. Review the table and execution details below.",
+    "rows": [
+      {
+        "order_id": 1001,
+        "customer_id": 101,
+        "product_id": 201,
+        "quantity": 1,
+        "unit_price": 72900.0,
+        "status": "DELIVERED",
+        "ordered_at": "2026-01-10T10:00:00.000+00:00",
+        "customer_name": "Asha Rao",
+        "city": "Bengaluru",
+        "product_name": "AtlasBook Pro 14"
+      },
+      {
+        "order_id": 1002,
+        "customer_id": 102,
+        "product_id": 202,
+        "quantity": 1,
+        "unit_price": 58900.0,
+        "status": "DELIVERED",
+        "ordered_at": "2026-01-12T10:00:00.000+00:00",
+        "customer_name": "Ravi Kumar",
+        "city": "Hyderabad",
+        "product_name": "NovaBook Air 15"
+      },
+      {
+        "order_id": 1004,
+        "customer_id": 104,
+        "product_id": 204,
+        "quantity": 1,
+        "unit_price": 94900.0,
+        "status": "DELIVERED",
+        "ordered_at": "2026-01-18T10:00:00.000+00:00",
+        "customer_name": "Arjun Shah",
+        "city": "Pune",
+        "product_name": "StudioBook Max"
+      },
+      {
+        "order_id": 1007,
+        "customer_id": 106,
+        "product_id": 202,
+        "quantity": 1,
+        "unit_price": 58900.0,
+        "status": "DELIVERED",
+        "ordered_at": "2026-02-02T10:00:00.000+00:00",
+        "customer_name": "Dev Patel",
+        "city": "Mumbai",
+        "product_name": "NovaBook Air 15"
+      }
+    ],
+    "sources": [],
+    "traces": [
+      {
+        "shard": "product",
+        "bucket": null,
+        "sql": "SELECT p.product_id,p.name,p.category FROM products p WHERE 1=1 AND lower(p.category)=:category ORDER BY p.product_id LIMIT :cap",
+        "parameters": {
+          "cap": 201,
+          "category": "laptop",
+          "price": 50000
+        },
+        "rows": 4,
+        "durationMs": 0,
+        "status": "COMPLETE"
+      },
+      {
+        "shard": "order",
+        "bucket": null,
+        "sql": "SELECT o.order_id,o.customer_id,i.product_id,i.quantity,i.unit_price,o.status,o.ordered_at FROM orders o JOIN order_items i ON i.order_id=o.order_id AND i.bucket=o.bucket WHERE o.status='DELIVERED' AND i.product_id IN (:products) AND i.unit_price > :price ORDER BY o.order_id,i.item_id LIMIT :cap",
+        "parameters": {
+          "cap": 51,
+          "category": "laptop",
+          "price": 50000,
+          "products": [
+            201,
+            202,
+            203,
+            204
+          ]
+        },
+        "rows": 4,
+        "durationMs": 6,
+        "status": "COMPLETE"
+      },
+      {
+        "shard": "customer",
+        "bucket": null,
+        "sql": "SELECT customer_id,name,city FROM customers WHERE customer_id IN (:customers)",
+        "parameters": {
+          "customers": [
+            101,
+            102,
+            104,
+            106
+          ]
+        },
+        "rows": 4,
+        "durationMs": 4,
+        "status": "COMPLETE"
+      }
+    ],
+    "warnings": [],
+    "plan": {
+      "mode": "SQL",
+      "intent": "PURCHASES",
+      "category": "laptop",
+      "minPrice": 50000,
+      "customerId": null,
+      "productId": null,
+      "limit": 50,
+      "explanation": "Runtime verification"
+    },
+    "cached": false,
+    "generatedAt": "2026-11-08T02:56:25.230448106Z",
+    "durationMs": 15,
+    "answerMethod": "DETERMINISTIC_SQL"
+  }
+}

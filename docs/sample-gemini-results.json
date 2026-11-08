@@ -1,0 +1,318 @@
+{
+  "catalogue": {
+    "id": "d25262b1-48ea-434f-bf6a-1057ed01971d",
+    "question": "List the laptop products in the catalogue with a current price above \u20b950,000.",
+    "mode": "SQL",
+    "status": "COMPLETE",
+    "createdAt": "2026-11-08T03:39:56.360074Z",
+    "completedAt": "2026-11-08T03:39:58.845411Z",
+    "error": null,
+    "result": {
+      "mode": "SQL",
+      "answer": "The laptop products in the catalogue with a price exceeding \u20b950,000 are the AtlasBook Pro 14 (\u20b972,900), the NovaBook Air 15 (\u20b958,900), and the StudioBook Max (\u20b994,900).",
+      "rows": [
+        {
+          "product_id": 201,
+          "name": "AtlasBook Pro 14",
+          "category": "laptop",
+          "price": 72900.0
+        },
+        {
+          "product_id": 202,
+          "name": "NovaBook Air 15",
+          "category": "laptop",
+          "price": 58900.0
+        },
+        {
+          "product_id": 204,
+          "name": "StudioBook Max",
+          "category": "laptop",
+          "price": 94900.0
+        }
+      ],
+      "sources": [],
+      "traces": [
+        {
+          "shard": "product",
+          "bucket": null,
+          "sql": "SELECT p.product_id,p.name,p.category,p.price FROM products p WHERE 1=1 AND lower(p.category)=:category AND p.price > :price ORDER BY p.product_id LIMIT :cap",
+          "parameters": {
+            "cap": 51,
+            "category": "laptop",
+            "price": 50000
+          },
+          "rows": 3,
+          "durationMs": 7,
+          "status": "COMPLETE"
+        }
+      ],
+      "warnings": [],
+      "plan": {
+        "mode": "SQL",
+        "intent": "PRODUCTS",
+        "category": "laptop",
+        "minPrice": 50000,
+        "customerId": null,
+        "productId": null,
+        "limit": 50,
+        "explanation": "Retrieve laptop products with a price greater than 50000."
+      },
+      "cached": false,
+      "generatedAt": "2026-11-08T03:39:58.836572696Z",
+      "durationMs": 2452,
+      "answerMethod": "GEMINI"
+    }
+  },
+  "rag": {
+    "id": "f350f970-b2b9-499f-9308-afbbc4a3c6d2",
+    "question": "What does the uploaded return policy say about laptop returns?",
+    "mode": "RAG",
+    "status": "COMPLETE",
+    "createdAt": "2026-11-08T03:39:59.469345Z",
+    "completedAt": "2026-11-08T03:40:01.173856Z",
+    "error": null,
+    "result": {
+      "mode": "RAG",
+      "answer": "Laptop returns may be requested within seven calendar days of recorded delivery if the product is defective or the item delivered differs from the order [D1]. Customers are required to provide their order ID and a description of the issue, and should include original packaging and accessories if available [D1]. A support review is necessary before a return authorization can be issued, and damage that occurs after delivery is not covered by this policy [D1].",
+      "rows": [],
+      "sources": [
+        {
+          "id": "D1",
+          "documentId": "938f9d69-d466-4fa9-8a1c-8197b4e0377e",
+          "filename": "return-policy.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO POLICY \u2014 applies only to this college project's imaginary store.\nVersion: 1.0. Effective date: 1 January 2026.\nLaptop returns may be requested within seven calendar days of recorded delivery when the product is defective or the delivered item differs from the order. The customer must provide the order ID and a description of the issue. Accessories and original packaging should be included where available. A support review is required before a return authorization is issued. Physical damage caused after delivery is excluded from this example policy. Refund timing is not specified in this document; do not infer a number of days. This is sample text for document retrieval, not legal or consumer-rights guidance.",
+          "score": 0.7015827,
+          "productId": null,
+          "customerId": null
+        },
+        {
+          "id": "D2",
+          "documentId": "0b38abeb-e9d6-4c23-ab2b-e982ac90b47a",
+          "filename": "arjun-studio-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Arjun Shah (104). Product: StudioBook Max (204).\nThis laptop feels fast for my graphics coursework and rendering tasks. This is a personal impression, not a measured comparison. The charger is heavy and battery life under sustained rendering is disappointing in my use. I prefer it as a desk-based machine with power available. Buyers who travel frequently may prefer a lighter model.",
+          "score": 0.5527779,
+          "productId": 204,
+          "customerId": 104
+        },
+        {
+          "id": "D3",
+          "documentId": "fcf08f90-3d56-4a8b-a9d8-041d446f4fdd",
+          "filename": "asha-atlas-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Asha Rao (101). Product: AtlasBook Pro 14 (201).\nI bought this laptop for programming classes and Java projects. The keyboard is comfortable and the chassis feels sturdy. In my personal use the battery was satisfactory for lectures, although I did not measure runtime scientifically. The fan becomes noticeable while compiling large projects. I would recommend it to students who value build quality and portability, while reminding them that sustained heavy workloads are audible. This review is an opinion, not a benchmark or a warranty promise.",
+          "score": 0.5501877,
+          "productId": 201,
+          "customerId": 101
+        },
+        {
+          "id": "D4",
+          "documentId": "85d25597-08ca-4193-b328-c98383e70799",
+          "filename": "dev-nova-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Dev Patel (106). Product: NovaBook Air 15 (202).\nThe keyboard is comfortable for writing code. The screen is difficult for me to read outdoors in bright light. I mostly use it indoors, where it meets my study needs. I have not tested battery runtime or compared its speed scientifically. I would suggest trying the display in your own work environment before deciding.",
+          "score": 0.5489454,
+          "productId": 202,
+          "customerId": 106
+        },
+        {
+          "id": "D5",
+          "documentId": "d78e8173-2392-4762-a3d5-040e1e3cfce9",
+          "filename": "ravi-nova-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Ravi Kumar (102). Product: NovaBook Air 15 (202).\nThe lightweight design is convenient for my commute. Typing feels comfortable, and ordinary browser work is responsive in my personal use. The webcam looks soft in poor lighting, so I use an external camera for important calls. I did not run performance or battery benchmarks. For everyday study and travel I like the balance, but people focused on video calls should check the camera before buying.",
+          "score": 0.52349424,
+          "productId": 202,
+          "customerId": 102
+        }
+      ],
+      "traces": [],
+      "warnings": [],
+      "plan": {
+        "mode": "RAG",
+        "intent": "PRODUCTS",
+        "category": null,
+        "minPrice": null,
+        "customerId": null,
+        "productId": null,
+        "limit": 50,
+        "explanation": "Search uploaded documents."
+      },
+      "cached": false,
+      "generatedAt": "2026-11-08T03:40:01.167738782Z",
+      "durationMs": 1695,
+      "answerMethod": "GEMINI"
+    }
+  },
+  "hybrid": {
+    "id": "a42cdd4d-2f0d-48cb-bafc-3c2e6e34b792",
+    "question": "Find customers who purchased laptops above \u20b950,000 and summarize their uploaded product reviews.",
+    "mode": "HYBRID",
+    "status": "COMPLETE",
+    "createdAt": "2026-11-08T03:40:01.512110Z",
+    "completedAt": "2026-11-08T03:40:04.761553Z",
+    "error": null,
+    "result": {
+      "mode": "HYBRID",
+      "answer": "The customers who purchased laptops above \u20b950,000 include Asha Rao, Ravi Kumar, Arjun Shah, and Dev Patel. Asha Rao (AtlasBook Pro 14) praised the sturdy build and comfortable keyboard, noting the fan is audible during heavy workloads [D1]. Ravi Kumar (NovaBook Air 15) appreciated the lightweight design and comfortable typing, though he noted the webcam performance is poor in low light [D4]. Arjun Shah (StudioBook Max) found the device fast for rendering but noted a heavy charger and disappointing battery life during intensive tasks [D3]. Dev Patel (NovaBook Air 15) reported a comfortable keyboard but found the screen difficult to read in bright outdoor conditions [D2].",
+      "rows": [
+        {
+          "order_id": 1001,
+          "customer_id": 101,
+          "product_id": 201,
+          "quantity": 1,
+          "unit_price": 72900.0,
+          "status": "DELIVERED",
+          "ordered_at": "2026-01-10T10:00:00.000+00:00",
+          "customer_name": "Asha Rao",
+          "city": "Bengaluru",
+          "product_name": "AtlasBook Pro 14"
+        },
+        {
+          "order_id": 1002,
+          "customer_id": 102,
+          "product_id": 202,
+          "quantity": 1,
+          "unit_price": 58900.0,
+          "status": "DELIVERED",
+          "ordered_at": "2026-01-12T10:00:00.000+00:00",
+          "customer_name": "Ravi Kumar",
+          "city": "Hyderabad",
+          "product_name": "NovaBook Air 15"
+        },
+        {
+          "order_id": 1004,
+          "customer_id": 104,
+          "product_id": 204,
+          "quantity": 1,
+          "unit_price": 94900.0,
+          "status": "DELIVERED",
+          "ordered_at": "2026-01-18T10:00:00.000+00:00",
+          "customer_name": "Arjun Shah",
+          "city": "Pune",
+          "product_name": "StudioBook Max"
+        },
+        {
+          "order_id": 1007,
+          "customer_id": 106,
+          "product_id": 202,
+          "quantity": 1,
+          "unit_price": 58900.0,
+          "status": "DELIVERED",
+          "ordered_at": "2026-02-02T10:00:00.000+00:00",
+          "customer_name": "Dev Patel",
+          "city": "Mumbai",
+          "product_name": "NovaBook Air 15"
+        }
+      ],
+      "sources": [
+        {
+          "id": "D1",
+          "documentId": "fcf08f90-3d56-4a8b-a9d8-041d446f4fdd",
+          "filename": "asha-atlas-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Asha Rao (101). Product: AtlasBook Pro 14 (201).\nI bought this laptop for programming classes and Java projects. The keyboard is comfortable and the chassis feels sturdy. In my personal use the battery was satisfactory for lectures, although I did not measure runtime scientifically. The fan becomes noticeable while compiling large projects. I would recommend it to students who value build quality and portability, while reminding them that sustained heavy workloads are audible. This review is an opinion, not a benchmark or a warranty promise.",
+          "score": 0.6730664,
+          "productId": 201,
+          "customerId": 101
+        },
+        {
+          "id": "D2",
+          "documentId": "85d25597-08ca-4193-b328-c98383e70799",
+          "filename": "dev-nova-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Dev Patel (106). Product: NovaBook Air 15 (202).\nThe keyboard is comfortable for writing code. The screen is difficult for me to read outdoors in bright light. I mostly use it indoors, where it meets my study needs. I have not tested battery runtime or compared its speed scientifically. I would suggest trying the display in your own work environment before deciding.",
+          "score": 0.6630225,
+          "productId": 202,
+          "customerId": 106
+        },
+        {
+          "id": "D3",
+          "documentId": "0b38abeb-e9d6-4c23-ab2b-e982ac90b47a",
+          "filename": "arjun-studio-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Arjun Shah (104). Product: StudioBook Max (204).\nThis laptop feels fast for my graphics coursework and rendering tasks. This is a personal impression, not a measured comparison. The charger is heavy and battery life under sustained rendering is disappointing in my use. I prefer it as a desk-based machine with power available. Buyers who travel frequently may prefer a lighter model.",
+          "score": 0.6562903,
+          "productId": 204,
+          "customerId": 104
+        },
+        {
+          "id": "D4",
+          "documentId": "d78e8173-2392-4762-a3d5-040e1e3cfce9",
+          "filename": "ravi-nova-review.txt",
+          "chunk": 1,
+          "text": "FICTIONAL DEMO REVIEW \u2014 not a real customer's statement.\nCustomer: Ravi Kumar (102). Product: NovaBook Air 15 (202).\nThe lightweight design is convenient for my commute. Typing feels comfortable, and ordinary browser work is responsive in my personal use. The webcam looks soft in poor lighting, so I use an external camera for important calls. I did not run performance or battery benchmarks. For everyday study and travel I like the balance, but people focused on video calls should check the camera before buying.",
+          "score": 0.64488876,
+          "productId": 202,
+          "customerId": 102
+        }
+      ],
+      "traces": [
+        {
+          "shard": "product",
+          "bucket": null,
+          "sql": "SELECT p.product_id,p.name,p.category FROM products p WHERE 1=1 AND lower(p.category)=:category ORDER BY p.product_id LIMIT :cap",
+          "parameters": {
+            "cap": 201,
+            "category": "laptop",
+            "price": 50000
+          },
+          "rows": 4,
+          "durationMs": 2,
+          "status": "COMPLETE"
+        },
+        {
+          "shard": "order",
+          "bucket": null,
+          "sql": "SELECT o.order_id,o.customer_id,i.product_id,i.quantity,i.unit_price,o.status,o.ordered_at FROM orders o JOIN order_items i ON i.order_id=o.order_id AND i.bucket=o.bucket WHERE o.status='DELIVERED' AND i.product_id IN (:products) AND i.unit_price > :price ORDER BY o.order_id,i.item_id LIMIT :cap",
+          "parameters": {
+            "cap": 51,
+            "category": "laptop",
+            "price": 50000,
+            "products": [
+              201,
+              202,
+              203,
+              204
+            ]
+          },
+          "rows": 4,
+          "durationMs": 5,
+          "status": "COMPLETE"
+        },
+        {
+          "shard": "customer",
+          "bucket": null,
+          "sql": "SELECT customer_id,name,city FROM customers WHERE customer_id IN (:customers)",
+          "parameters": {
+            "customers": [
+              101,
+              102,
+              104,
+              106
+            ]
+          },
+          "rows": 4,
+          "durationMs": 9,
+          "status": "COMPLETE"
+        }
+      ],
+      "warnings": [],
+      "plan": {
+        "mode": "HYBRID",
+        "intent": "PURCHASES",
+        "category": "laptop",
+        "minPrice": 50000,
+        "customerId": null,
+        "productId": null,
+        "limit": 50,
+        "explanation": "Retrieve purchase history for laptops priced above 50,000 to identify customers and aggregate their reviews via hybrid mode."
+      },
+      "cached": false,
+      "generatedAt": "2026-11-08T03:40:04.757228873Z",
+      "durationMs": 3241,
+      "answerMethod": "GEMINI"
+    }
+  }
+}

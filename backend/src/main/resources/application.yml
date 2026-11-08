@@ -1,0 +1,79 @@
+server:
+  port: ${PORT:8087}
+  servlet:
+    session:
+      timeout: 8h
+      cookie:
+        name: SHARDQUERY_SESSION
+        http-only: true
+        same-site: strict
+        secure: ${COOKIE_SECURE:false}
+  error:
+    include-message: never
+spring:
+  flyway:
+    schemas: app
+    default-schema: app
+    baseline-on-migrate: true
+    baseline-version: 0
+  datasource:
+    url: jdbc:postgresql://${PRODUCT_HOST:localhost}:${PRODUCT_PORT:5643}/shard_product_db?currentSchema=app
+    username: shard_app
+    password: ${APP_PASSWORD:local-metadata-change-me}
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 3000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: app
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6391}
+      timeout: 1s
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9192}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        max.block.ms: 5000
+        delivery.timeout.ms: 15000
+        request.timeout.ms: 5000
+    consumer:
+      group-id: shardquery-documents-v1
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        max.poll.interval.ms: 600000
+    listener:
+      ack-mode: record
+app:
+  external-db-allowed-hosts: ${EXTERNAL_DB_ALLOWED_HOSTS:localhost,127.0.0.1,host.docker.internal}
+  workspace-password: ${WORKSPACE_PASSWORD:local-workspaces-change-me}
+  workspace-host: ${PRODUCT_HOST:localhost}
+  workspace-port: ${PRODUCT_PORT:5643}
+  reader-password: ${READER_PASSWORD:local-readonly-change-me}
+  customer-url: jdbc:postgresql://${CUSTOMER_HOST:localhost}:${CUSTOMER_PORT:5641}/shard_customer_db
+  order-url: jdbc:postgresql://${ORDER_HOST:localhost}:${ORDER_PORT:5642}/shard_order_db
+  product-url: jdbc:postgresql://${PRODUCT_HOST:localhost}:${PRODUCT_PORT:5643}/shard_product_db
+  qdrant-url: ${QDRANT_URL:http://localhost:6343}
+  upload-dir: ${UPLOAD_DIR:./uploads}
+  ai-key: ${GEMINI_API_KEY:}
+  ai-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
+  model: ${GEMINI_MODEL:gemini-3.1-flash-lite}
+  embedding-model: ${EMBEDDING_MODEL:gemini-embedding-001}
+  collection: shardquery_documents_v1
+logging:
+  level:
+    org.apache.kafka: WARN
+    org.hibernate: WARN

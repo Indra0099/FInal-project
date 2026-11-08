@@ -1,0 +1,54 @@
+{
+  "note": "Observed live Gemini query over two fictional records entered through the UI. Disposable test account/data removed after verification.",
+  "query": {
+    "id": "3600c7b0-8ee6-45cf-a03b-ef9c33cd638a",
+    "question": "Show up to 3 students with marks above 80, sorted by marks from highest to lowest.",
+    "mode": "SQL",
+    "status": "COMPLETE",
+    "createdAt": "2026-11-08T04:33:07.900215Z",
+    "completedAt": "2026-11-08T04:33:18.749440Z",
+    "error": null,
+    "result": {
+      "mode": "SQL",
+      "answer": "Asha is the only student record available with marks above 80, having scored 95.",
+      "rows": [
+        {
+          "_row_id": 1,
+          "student_name": "Asha",
+          "marks": "95"
+        }
+      ],
+      "sources": [],
+      "traces": [
+        {
+          "shard": "College records / Exam results",
+          "bucket": null,
+          "sql": "SELECT * FROM \"t_3b73d3d154e04d838efb81727873e55b\" WHERE \"marks\" > ? ORDER BY \"marks\" DESC LIMIT ?",
+          "parameters": {
+            "filter0": 80,
+            "limit": 3
+          },
+          "rows": 1,
+          "durationMs": 11,
+          "status": "COMPLETE"
+        }
+      ],
+      "warnings": [],
+      "plan": {
+        "mode": "SQL",
+        "intent": "CUSTOM_TABLE",
+        "category": null,
+        "minPrice": null,
+        "customerId": null,
+        "productId": null,
+        "limit": 3,
+        "explanation": "Filtering for students with marks greater than 80, sorted by marks in descending order with a limit of 3."
+      },
+      "cached": false,
+      "generatedAt": "2026-11-08T04:33:18.739532911Z",
+      "durationMs": 10815,
+      "answerMethod": "GEMINI",
+      "tableId": "3b73d3d1-54e0-4d83-8efb-81727873e55b"
+    }
+  }
+}

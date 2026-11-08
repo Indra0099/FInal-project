@@ -1,0 +1,28 @@
+sequenceDiagram
+    actor Owner
+    participant UI as My databases
+    participant API as Authenticated backend
+    participant Vault as Installation AES-GCM key
+    participant DB as External PostgreSQL
+    participant Meta as Owner catalog
+    participant AI as Gemini
+    Owner->>UI: Connection link and schema
+    UI->>API: Save connection with CSRF
+    API->>API: Validate URI and exact host allowlist
+    API->>DB: Open read-only transaction with timeout
+    DB-->>API: Accessible tables and supported columns
+    API->>Vault: Encrypt link with connection ID context
+    Vault-->>API: Ciphertext
+    API->>Meta: Save encrypted connection and discovered schema
+    API-->>UI: Table catalog, without credentials
+    Owner->>API: Ask natural-language question
+    API->>AI: Owned table schema and question
+    AI-->>API: Structured plan with table IDs and filters
+    API->>API: Validate columns and ownership
+    API->>DB: Bounded parameterized SELECT
+    DB-->>API: Live matching records
+    API->>AI: Summarize retrieved records
+    AI-->>Owner: Answer with selected table labels
+    Owner->>API: Confirm disconnect
+    API->>Meta: Remove local connection metadata
+    Note over API,DB: Remote tables and records are unchanged

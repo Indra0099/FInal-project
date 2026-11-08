@@ -1,0 +1,84 @@
+erDiagram
+ CUSTOMERS ||--o{ CUSTOMER_ADDRESSES : has
+ CUSTOMERS ||..o{ ORDERS : "logical ID across databases"
+ ORDERS ||--o{ ORDER_ITEMS : contains
+ ORDERS ||--o{ PAYMENTS : has
+ PRODUCTS ||--|| INVENTORY : stocks
+ PRODUCTS ||--o{ CUSTOMER_REVIEWS : receives
+ PRODUCTS ||..o{ ORDER_ITEMS : "logical ID across databases"
+ CUSTOMERS ||..o{ CUSTOMER_REVIEWS : "logical ID across databases"
+ CUSTOMERS {
+  int bucket PK
+  bigint customer_id PK
+  string name
+  string email
+  string city
+ }
+ CUSTOMER_ADDRESSES {
+  int bucket PK,FK
+  bigint address_id PK
+  bigint customer_id FK
+  string city
+  string address_line
+ }
+ ORDERS {
+  int bucket PK
+  bigint order_id PK
+  bigint customer_id
+  timestamp ordered_at
+  string status
+  decimal total_amount
+ }
+ ORDER_ITEMS {
+  bigint item_id PK
+  int bucket FK
+  bigint order_id FK
+  bigint product_id
+  int quantity
+  decimal unit_price
+ }
+ PAYMENTS {
+  bigint payment_id PK
+  int bucket FK
+  bigint order_id FK
+  decimal amount
+  string status
+ }
+ PRODUCTS {
+  bigint product_id PK
+  string name
+  string category
+  decimal price
+ }
+ INVENTORY {
+  bigint product_id PK,FK
+  int available
+  string warehouse
+ }
+ CUSTOMER_REVIEWS {
+  bigint review_id PK
+  bigint customer_id
+  bigint product_id FK
+  int rating
+  string review_text
+  date reviewed_at
+ }
+ DOCUMENTS {
+  uuid id PK
+  string fingerprint UK
+  string name
+  string status
+  bigint product_id
+  bigint customer_id
+  int attempts
+  int chunks
+  timestamp next_dispatch
+ }
+ QUERY_JOBS {
+  uuid id PK
+  string question
+  string mode
+  string status
+  text result_json
+  timestamp created_at
+ }

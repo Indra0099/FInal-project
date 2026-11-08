@@ -1,0 +1,482 @@
+{
+  "info": {
+    "name": "ShardQuery AI \u2014 local acceptance",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Run in order with the Postman cookie jar enabled. Set local email and password variables for an existing account. Fetch CSRF before login and again after session rotation. Never commit real passwords. Includes database/table/row creation in your account."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8087"
+    },
+    {
+      "key": "email",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": ""
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Get pre-login CSRF",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/auth/csrf",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('CSRF available',()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('csrfToken',pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sign in",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/login",
+        "header": [
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Signed in',()=>pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Refresh CSRF after sign in",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/auth/csrf",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('CSRF available',()=>pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('csrfToken',pm.response.json().token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/health",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Application responds',()=>pm.response.to.have.status(200));",
+              "pm.test('Three shards available',()=>Object.values(pm.response.json().shards).forEach(s=>pm.expect(s).to.eql('UP')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Queue query",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/queries",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"question\": \"Postman acceptance: laptop purchases above 50000\", \"mode\": \"SQL\", \"plan\": {\"mode\": \"SQL\", \"intent\": \"PURCHASES\", \"category\": \"laptop\", \"minPrice\": 50000, \"customerId\": null, \"productId\": null, \"limit\": 50, \"explanation\": \"Explicit Postman acceptance filters\"}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Accepted',()=>pm.response.to.have.status(202));",
+              "pm.collectionVariables.set('queryId',pm.response.json().id);",
+              "pm.collectionVariables.set('polls',0);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wait for query",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/queries/{{queryId}}",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Found',()=>pm.response.to.have.status(200));",
+              "const job=pm.response.json();",
+              "if(['QUEUED','RUNNING'].includes(job.status)){",
+              " const count=Number(pm.collectionVariables.get('polls'))+1;pm.collectionVariables.set('polls',count);",
+              " pm.test('Completes within poll budget',()=>pm.expect(count).below(40));",
+              " if(count<40){pm.execution.setNextRequest('Wait for query');setTimeout(()=>{},300);}",
+              "}else{",
+              " pm.test('Complete',()=>pm.expect(job.status).eql('COMPLETE'));",
+              " pm.test('Four delivered laptop purchases',()=>pm.expect(job.result.rows.length).eql(4));",
+              " pm.test('Associated names',()=>pm.expect(job.result.rows.map(r=>r.customer_name)).to.include.members(['Asha Rao','Ravi Kumar','Arjun Shah','Dev Patel']));",
+              " pm.test('Three domain queries',()=>pm.expect(job.result.traces.length).eql(3));",
+              " pm.test('Clearly labelled non-AI result',()=>pm.expect(job.result.answerMethod).eql('DETERMINISTIC_SQL'));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "History",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/queries",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('History contains query',()=>pm.expect(pm.response.json().map(j=>j.id)).includes(pm.collectionVariables.get('queryId')));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/documents",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Document list',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json()).to.be.an('array');});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject invalid question",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/queries",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"question\": \"x\", \"mode\": \"SQL\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid question rejected',()=>pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unknown query",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/queries/00000000-0000-0000-0000-000000000001",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Unknown query is 404',()=>pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create personal database",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/databases",
+        "header": [
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Postman {{$timestamp}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Database created',()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('databaseId',pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Students table",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/databases/{{databaseId}}/tables",
+        "header": [
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Students\",\n  \"columns\": [\n    {\n      \"name\": \"student_name\",\n      \"type\": \"TEXT\",\n      \"required\": true\n    },\n    {\n      \"name\": \"marks\",\n      \"type\": \"INTEGER\",\n      \"required\": true\n    }\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Table created',()=>pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('tableId',pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add a student record",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/databases/{{databaseId}}/tables/{{tableId}}/rows",
+        "header": [
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"values\": {\n    \"student_name\": \"Asha\",\n    \"marks\": 92\n  }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Row created',()=>pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read stored rows",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/databases/{{databaseId}}/tables/{{tableId}}/rows",
+        "header": []
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Stored record returned',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().total).to.eql(1);});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auto-select personal student data",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/queries",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"question\": \"List students with marks above 80\", \"mode\": \"AUTO\", \"source\": \"PERSONAL\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Query queued',()=>pm.response.to.have.status(202));",
+              "pm.collectionVariables.set('personalJobId',pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sign out",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/logout",
+        "header": [
+          {
+            "key": "X-CSRF-TOKEN",
+            "value": "{{csrfToken}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Signed out',()=>pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

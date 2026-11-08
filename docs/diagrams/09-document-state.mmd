@@ -1,0 +1,11 @@
+stateDiagram-v2
+ [*] --> WAITING_FOR_KEY: Valid upload without key
+ [*] --> QUEUED: Valid upload with key
+ WAITING_FOR_KEY --> QUEUED: Configure key and retry
+ QUEUED --> PROCESSING: Kafka message consumed
+ PROCESSING --> READY: Vectors persisted
+ PROCESSING --> QUEUED: Failure with attempts remaining
+ PROCESSING --> FAILED: Third failed attempt
+ PROCESSING --> QUEUED: Application restart recovery
+ FAILED --> QUEUED: Explicit retry resets attempts
+ READY --> [*]

@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor User
+    participant UI as Query workspace
+    participant API as Authenticated query service
+    participant Catalog as Owner table catalog
+    participant AI as Gemini planner
+    participant Engine as Validated personal query engine
+    participant Students as Student database
+    participant Fees as Fees database
+    User->>UI: Find students whose fees exceed 150000
+    UI->>API: Question with source AUTO
+    API->>Catalog: Read schemas for current account
+    Catalog-->>API: Owned tables and typed columns
+    API->>AI: Question and available schema
+    AI-->>API: Table IDs, relationship and numeric filter
+    API->>Engine: Validate against owner catalog
+    Engine->>Students: Read bounded rows in read-only transaction
+    Students-->>Engine: Student records
+    Engine->>Fees: Read bounded rows in read-only transaction
+    Fees-->>Engine: Fee records
+    Engine->>Engine: Join student.id to fees.student_id
+    Engine->>Engine: Filter fees GT 150000, sort and limit
+    Engine-->>API: Matching rows and real execution traces
+    API->>AI: Summarize retrieved evidence
+    AI-->>API: Grounded answer
+    API-->>UI: Answer, records and selected table names
+    UI-->>User: Display data used and result

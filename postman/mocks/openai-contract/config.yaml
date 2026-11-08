@@ -1,0 +1,15 @@
+version: 1
+id: 2d3c7bb1-feeb-41b6-8374-86c7229c3418
+name: openai-contract
+slug: openai-contract
+protocol: http
+interceptRequests: true
+port: 4017
+scenarios:
+  - name: default
+    path: ./default.js
+    default: true
+generatedFrom:
+  type: spec
+  mode: static
+  path: ../../openai-subset.openapi.json

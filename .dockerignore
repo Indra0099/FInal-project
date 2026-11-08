@@ -1,0 +1,8 @@
+.git
+.env
+.local
+**/node_modules
+**/target
+frontend/dist
+dist
+uploads

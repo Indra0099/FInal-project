@@ -1,0 +1,18 @@
+flowchart TD
+    User[Signed-in owner] --> Select[Select database and table]
+    Select --> Kind{Source type}
+    Kind -->|Local| Edit[Rename or edit columns and rows]
+    Kind -->|Local| Delete[Request deletion]
+    Delete --> Confirm{User confirms selected item}
+    Confirm -->|No| Cancel[No change]
+    Confirm -->|Yes| Guard[Validate ownership and CSRF]
+    Edit --> Guard
+    Guard --> Local[(Local PostgreSQL data)]
+    Guard --> Metadata[(Workspace metadata)]
+    Kind -->|Connected| Read[Preview or query live records]
+    Kind -->|Connected| Refresh[Refresh table metadata]
+    Kind -->|Connected| Disconnect[Confirm disconnect]
+    Disconnect --> Forget[Remove saved connection and catalog only]
+    Forget --> Metadata
+    Refresh --> Metadata
+    Read --> External[(External PostgreSQL read only)]

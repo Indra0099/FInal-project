@@ -1,0 +1,116 @@
+{
+  "notice": "Live Gemini with fictional rows in two disposable PostgreSQL sources and SELECT-only connections. No connection secrets.",
+  "query": {
+    "id": "52bf457c-9722-4b77-b45c-871d1a5eaf1d",
+    "question": "Find the students whose fees are above 150000. Join students.id to student_fees.student_id from my connected college databases.",
+    "mode": "AUTO",
+    "status": "COMPLETE",
+    "createdAt": "2026-11-08T05:37:44.804178Z",
+    "completedAt": "2026-11-08T05:37:51.019196Z",
+    "error": null,
+    "result": {
+      "mode": "SQL",
+      "answer": "The student with fees above 150000 is Asha Rao (ID: 1), who has a fee amount of 220000 based on the database records.",
+      "rows": [
+        {
+          "College students server / students.id": "1",
+          "College students server / students.name": "Asha Rao",
+          "College students server / students.branch": "CSE",
+          "College fees server / student_fees.id": "101",
+          "College fees server / student_fees.student_id": "1",
+          "College fees server / student_fees.fees": "220000"
+        }
+      ],
+      "sources": [],
+      "traces": [
+        {
+          "shard": "College students server / students",
+          "bucket": null,
+          "sql": "SELECT \"id\",\"name\",\"branch\" FROM \"public\".\"students\" ORDER BY \"id\" LIMIT ?",
+          "parameters": {
+            "limit": 1001
+          },
+          "rows": 2,
+          "durationMs": 7,
+          "status": "COMPLETE"
+        },
+        {
+          "shard": "College fees server / student_fees",
+          "bucket": null,
+          "sql": "SELECT \"id\",\"student_id\",\"fees\" FROM \"public\".\"student_fees\" ORDER BY \"id\" LIMIT ?",
+          "parameters": {
+            "limit": 1001
+          },
+          "rows": 2,
+          "durationMs": 5,
+          "status": "COMPLETE"
+        }
+      ],
+      "warnings": [],
+      "plan": {
+        "mode": "SQL",
+        "intent": "CUSTOM_TABLE",
+        "category": null,
+        "minPrice": null,
+        "customerId": null,
+        "productId": null,
+        "limit": 50,
+        "explanation": "Routing to PERSONAL tables 'students' and 'student_fees'. Joining 'students.id' to 'student_fees.student_id' as requested to filter fees above 150000. Records were read from the selected personal tables; filtering, association and sorting ran in the application before the final result limit."
+      },
+      "cached": false,
+      "generatedAt": "2026-11-08T05:37:51.005958149Z",
+      "durationMs": 6197,
+      "answerMethod": "GEMINI",
+      "dataSource": "PERSONAL",
+      "requestSource": "PERSONAL",
+      "tables": [
+        {
+          "id": "0d2f98a0-ec9f-480b-9918-31c0b0e4d544",
+          "databaseId": "546d8f8f-91e2-4076-8761-969c8f93a84e",
+          "databaseName": "College students server",
+          "name": "students",
+          "columns": [
+            {
+              "name": "id",
+              "type": "INTEGER",
+              "required": true
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "required": false
+            },
+            {
+              "name": "branch",
+              "type": "TEXT",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "de74df81-6096-4b3a-9352-e5d53c3531e2",
+          "databaseId": "a3391d47-a1b8-4bdb-8cbb-d58d69a990bc",
+          "databaseName": "College fees server",
+          "name": "student_fees",
+          "columns": [
+            {
+              "name": "id",
+              "type": "INTEGER",
+              "required": true
+            },
+            {
+              "name": "student_id",
+              "type": "INTEGER",
+              "required": false
+            },
+            {
+              "name": "fees",
+              "type": "INTEGER",
+              "required": false
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

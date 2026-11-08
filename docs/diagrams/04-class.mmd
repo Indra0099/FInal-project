@@ -1,0 +1,62 @@
+classDiagram
+ class QueryService {
+  +submit(Request) QueryJob
+  +get(UUID) QueryJob
+  +history() List
+  -run(UUID, Request)
+ }
+ class SqlEngine {
+  +execute(Plan) DatabaseResult
+ }
+ class ShardManager {
+  +jdbc(String) NamedParameterJdbcTemplate
+  +bucket(int) int
+  +health() Map
+ }
+ class GeminiGateway {
+  +plan(String, Mode) Plan
+  +embed(List) List
+  +answer(String, List, List, List) String
+ }
+ class DocumentService {
+  +upload(MultipartFile, Long, Long) DocumentRecord
+  +dispatch()
+  +consume(String)
+  +retry(UUID) DocumentRecord
+ }
+ class DocumentExtractor {
+  +extract(byte[], String) String
+  +chunks(String) List
+ }
+ class VectorStore {
+  +upsert(DocumentRecord, List, List)
+  +search(List, List, boolean, String, List) List
+ }
+ class CacheService {
+  +get(String) String
+  +put(String, String, int)
+ }
+ class QueryJob {
+  UUID id
+  String question
+  String status
+  String resultJson
+ }
+ class DocumentRecord {
+  UUID id
+  String fingerprint
+  String status
+  Long productId
+  Long customerId
+  int attempts
+ }
+ QueryService --> SqlEngine
+ SqlEngine --> ShardManager
+ QueryService --> GeminiGateway
+ QueryService --> VectorStore
+ QueryService --> CacheService
+ QueryService --> QueryJob
+ DocumentService --> DocumentRecord
+ DocumentService --> DocumentExtractor
+ DocumentService --> GeminiGateway
+ DocumentService --> VectorStore

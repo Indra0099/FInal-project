@@ -1,0 +1,35 @@
+sequenceDiagram
+ actor User
+ participant UI as React UI
+ participant API as Query API
+ participant Jobs as PostgreSQL metadata
+ participant Worker as Query worker
+ participant AI as Gemini
+ participant SQL as SQL engine
+ participant Shards as Domain databases
+ participant Vector as Qdrant
+ User->>UI: Ask question and select mode
+ UI->>API: POST /api/queries
+ API->>Jobs: Persist QUEUED job
+ API-->>UI: 202 and job ID
+ API->>Worker: Schedule bounded task
+ Worker->>Jobs: RUNNING
+ Worker->>AI: Request typed plan
+ AI-->>Worker: JSON intent and filters
+ Worker->>SQL: Validate and execute plan
+ SQL->>Shards: Bound read-only queries
+ Shards-->>SQL: Rows or dependency failure
+ SQL-->>Worker: Associated rows, scope, traces, warnings
+ opt RAG or hybrid evidence needed
+ Worker->>AI: Embed question
+ AI-->>Worker: Vector
+ Worker->>Vector: Search ready documents with association filters
+ Vector-->>Worker: Excerpts and source metadata
+ end
+ Worker->>AI: Summarize supplied evidence
+ AI-->>Worker: Answer and citation IDs
+ Worker->>Jobs: Save COMPLETE or PARTIAL result
+ UI->>API: Poll GET /api/queries/id
+ API->>Jobs: Read status and result
+ API-->>UI: Actual result and evidence
+ UI-->>User: Answer, records and sources

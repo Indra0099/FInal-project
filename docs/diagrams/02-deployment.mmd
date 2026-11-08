@@ -1,0 +1,13 @@
+flowchart LR
+ Browser[Local browser] --> App[Spring Boot container port 8087]
+ subgraph Docker[Docker Compose project]
+ App --> Customer[(customer-db PostgreSQL 16)]
+ App --> Orders[(order-db PostgreSQL 16)]
+ App --> Products[(product-db PostgreSQL 16)]
+ App --> Redis[(Redis)]
+ App --> Kafka[Kafka single KRaft broker]
+ App --> Qdrant[(Qdrant)]
+ App --> Files[(Upload volume)]
+ end
+ App --> Gemini[Gemini HTTPS API]
+ Build[React Vite build] -. static assets included in JAR .-> App

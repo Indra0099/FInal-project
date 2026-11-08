@@ -1,0 +1,26 @@
+flowchart TD
+ A[Validated query request] --> B{Explicit guided SQL plan?}
+ B -- Yes --> C[Validate typed plan]
+ B -- No --> D{AI configured?}
+ D -- No --> E[Explain required configuration]
+ D -- Yes --> F[Model produces structured plan]
+ F --> C
+ C --> G{Plan mode}
+ G -- SQL --> S[Read approved database templates]
+ G -- RAG --> R[Embed question and retrieve documents]
+ G -- HYBRID --> H[Read database matches]
+ H --> I{Association scope exists?}
+ I -- No --> N[Explain missing matching records]
+ I -- Yes --> R2[Search exact product and customer pairs]
+ S --> J[Collect rows and warnings]
+ R --> J
+ R2 --> J
+ J --> K{Evidence exists?}
+ K -- No --> N
+ K -- Yes --> L[Generate answer or show direct SQL result]
+ L --> M[Validate citation IDs]
+ M --> O[Persist result and expose evidence]
+ N --> O
+ O --> P{Warnings?}
+ P -- Yes --> Q[PARTIAL and no new answer cache]
+ P -- No --> T[COMPLETE and short-lived cache]

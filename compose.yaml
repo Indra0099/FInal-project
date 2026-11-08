@@ -1,0 +1,122 @@
+name: shardquery
+x-pg: &pg
+  image: postgres:16
+  restart: unless-stopped
+  environment: &pg-env
+    POSTGRES_USER: shard_admin
+    POSTGRES_PASSWORD: ${DB_PASSWORD}
+    READER_PASSWORD: ${READER_PASSWORD}
+    APP_PASSWORD: ${APP_PASSWORD}
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U shard_admin -d $$POSTGRES_DB"]
+    interval: 5s
+    timeout: 3s
+    retries: 20
+services:
+  customer-db:
+    <<: *pg
+    environment:
+      <<: *pg-env
+      POSTGRES_DB: shard_customer_db
+    ports: ["127.0.0.1:5641:5432"]
+    volumes:
+      - customer-data:/var/lib/postgresql/data
+      - ./infra/init-db.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - ./infra/customer.sql:/seed/schema.sql:ro
+  order-db:
+    <<: *pg
+    environment:
+      <<: *pg-env
+      POSTGRES_DB: shard_order_db
+    ports: ["127.0.0.1:5642:5432"]
+    volumes:
+      - order-data:/var/lib/postgresql/data
+      - ./infra/init-db.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - ./infra/order.sql:/seed/schema.sql:ro
+  product-db:
+    <<: *pg
+    environment:
+      <<: *pg-env
+      POSTGRES_DB: shard_product_db
+      WORKSPACE_PASSWORD: ${WORKSPACE_PASSWORD:-local-workspaces-change-me}
+    ports: ["127.0.0.1:5643:5432"]
+    volumes:
+      - product-data:/var/lib/postgresql/data
+      - ./infra/init-db.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - ./infra/product.sql:/seed/schema.sql:ro
+      - ./infra/enable-workspaces.sh:/docker-entrypoint-initdb.d/02-workspaces.sh:ro
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    ports: ["127.0.0.1:6391:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 12
+  qdrant:
+    image: qdrant/qdrant:v1.16.3
+    ports: ["127.0.0.1:6343:6333"]
+    volumes: ["qdrant-data:/qdrant/storage"]
+  kafka:
+    image: apache/kafka:3.9.1
+    ports: ["127.0.0.1:9192:9192"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093,EXTERNAL://:9192
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9192
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_HEAP_OPTS: -Xmx384m -Xms256m
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes: ["kafka-data:/var/lib/kafka/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+  app:
+    build: .
+    ports: ["127.0.0.1:${APP_PORT:-8087}:8087"]
+    environment:
+      APP_PASSWORD: ${APP_PASSWORD}
+      READER_PASSWORD: ${READER_PASSWORD}
+      CUSTOMER_HOST: customer-db
+      ORDER_HOST: order-db
+      PRODUCT_HOST: product-db
+      CUSTOMER_PORT: 5432
+      ORDER_PORT: 5432
+      PRODUCT_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_SERVERS: kafka:9092
+      QDRANT_URL: http://qdrant:6333
+      UPLOAD_DIR: /data/uploads
+      WORKSPACE_PASSWORD: ${WORKSPACE_PASSWORD:-local-workspaces-change-me}
+      EXTERNAL_DB_ALLOWED_HOSTS: ${EXTERNAL_DB_ALLOWED_HOSTS:-localhost,127.0.0.1,host.docker.internal}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-gemini-embedding-001}
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    volumes: ["upload-data:/data/uploads"]
+    depends_on:
+      customer-db: {condition: service_healthy}
+      order-db: {condition: service_healthy}
+      product-db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      kafka: {condition: service_healthy}
+      qdrant: {condition: service_started}
+    restart: unless-stopped
+volumes:
+  customer-data:
+  order-data:
+  product-data:
+  qdrant-data:
+  kafka-data:
+  upload-data:

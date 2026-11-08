@@ -1,0 +1,10 @@
+CREATE TABLE customers (customer_id bigint NOT NULL CHECK(customer_id BETWEEN 1 AND 2147483647), bucket integer NOT NULL CHECK(bucket=customer_id%3), name varchar(100) NOT NULL, email varchar(160) NOT NULL, city varchar(80) NOT NULL, PRIMARY KEY(bucket,customer_id)) PARTITION BY LIST(bucket);
+CREATE TABLE customer_addresses (customer_id bigint NOT NULL, bucket integer NOT NULL CHECK(bucket=customer_id%3), address_id bigint NOT NULL, city varchar(80), address_line text, PRIMARY KEY(bucket,address_id), FOREIGN KEY(bucket,customer_id) REFERENCES customers(bucket,customer_id)) PARTITION BY LIST(bucket);
+CREATE TABLE customers_b0 PARTITION OF customers FOR VALUES IN (0);
+CREATE TABLE addresses_b0 PARTITION OF customer_addresses FOR VALUES IN (0);
+CREATE TABLE customers_b1 PARTITION OF customers FOR VALUES IN (1);
+CREATE TABLE addresses_b1 PARTITION OF customer_addresses FOR VALUES IN (1);
+CREATE TABLE customers_b2 PARTITION OF customers FOR VALUES IN (2);
+CREATE TABLE addresses_b2 PARTITION OF customer_addresses FOR VALUES IN (2);
+INSERT INTO customers VALUES (101,2,'Asha Rao','asha@example.test','Bengaluru'),(102,0,'Ravi Kumar','ravi@example.test','Hyderabad'),(103,1,'Meera Das','meera@example.test','Chennai'),(104,2,'Arjun Shah','arjun@example.test','Pune'),(105,0,'Nila Joseph','nila@example.test','Kochi'),(106,1,'Dev Patel','dev@example.test','Mumbai');
+INSERT INTO customer_addresses SELECT customer_id,bucket,customer_id,city,'Fictional demo address' FROM customers;

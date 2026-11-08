@@ -1,0 +1,8 @@
+CREATE TABLE products (product_id bigint PRIMARY KEY, name varchar(160) NOT NULL, category varchar(80) NOT NULL, price numeric(12,2) NOT NULL CHECK(price>=0));
+CREATE INDEX products_category_idx ON products(lower(category));
+CREATE TABLE inventory (product_id bigint PRIMARY KEY REFERENCES products, available integer NOT NULL CHECK(available>=0), warehouse varchar(100));
+CREATE TABLE customer_reviews (review_id bigint PRIMARY KEY, customer_id bigint NOT NULL, product_id bigint NOT NULL REFERENCES products, rating integer NOT NULL CHECK(rating BETWEEN 1 AND 5), review_text text NOT NULL, reviewed_at date NOT NULL);
+CREATE INDEX reviews_product_customer_idx ON customer_reviews(product_id,customer_id);
+INSERT INTO products VALUES (201,'AtlasBook Pro 14','laptop',72900),(202,'NovaBook Air 15','laptop',58900),(203,'CampusBook 14','laptop',42900),(204,'StudioBook Max','laptop',94900),(205,'Orbit Wireless Mouse','accessory',2499),(206,'Focus Monitor 27','monitor',21900);
+INSERT INTO inventory VALUES (201,18,'Bengaluru'),(202,27,'Hyderabad'),(203,42,'Chennai'),(204,9,'Bengaluru'),(205,100,'Pune'),(206,14,'Chennai');
+INSERT INTO customer_reviews VALUES (301,101,201,5,'Good build quality and battery life; fan becomes audible during compilation.','2026-01-20'),(302,102,202,4,'Lightweight for commuting; webcam quality could improve.','2026-01-22'),(303,103,203,4,'Affordable for classes, but limited memory for large projects.','2026-01-25'),(304,104,204,4,'Fast rendering, heavy charger and short battery life under load.','2026-01-28'),(305,106,202,3,'Comfortable keyboard; screen is difficult to use outdoors.','2026-02-10');

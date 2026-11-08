@@ -1,0 +1,20 @@
+sequenceDiagram
+    actor User
+    participant UI as React client
+    participant Auth as Spring Security and AuthController
+    participant PG as PostgreSQL metadata
+    User->>UI: Enter registration or sign-in details
+    UI->>Auth: GET auth/csrf with cookie jar
+    Auth-->>UI: CSRF token and session cookie
+    UI->>Auth: POST register or login with CSRF token
+    Auth->>PG: Store BCrypt hash or load account
+    PG-->>Auth: Account record
+    Auth->>Auth: Verify password and rotate session ID
+    Auth-->>UI: Account summary and HttpOnly cookie
+    UI->>Auth: GET auth/csrf for rotated session
+    UI->>Auth: Protected request with cookie and CSRF for writes
+    Auth->>PG: Query resources using authenticated user ID
+    PG-->>UI: Owned data only
+    User->>UI: Sign out
+    UI->>Auth: POST auth/logout with CSRF
+    Auth-->>UI: Invalidate session and clear cookie

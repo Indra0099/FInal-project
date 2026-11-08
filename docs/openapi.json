@@ -1,0 +1,2434 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ShardQuery AI API",
+    "version": "1.3.0",
+    "description": "Authenticated local workspace. Session cookies and CSRF headers protect writes. Per-account databases, tables, rows, documents and query history. No arbitrary SQL endpoint."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8087/api"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Get service observations",
+        "operationId": "get_health",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/queries": {
+      "get": {
+        "summary": "Get latest 50 jobs",
+        "operationId": "get_queries",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/QueryJob"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Queue a query",
+        "operationId": "post_queries",
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryRequest"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/queries/{id}": {
+      "get": {
+        "summary": "Get query status and evidence",
+        "operationId": "get_queries_id",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryJob"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/documents": {
+      "get": {
+        "summary": "List latest 100 documents",
+        "operationId": "get_documents",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Document"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Upload a bounded document",
+        "operationId": "post_documents",
+        "responses": {
+          "202": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "productId": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "customerId": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 2147483647
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/documents/{id}/retry": {
+      "post": {
+        "summary": "Retry failed or waiting ingestion",
+        "operationId": "post_documents_id_retry",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/documents/{id}/download": {
+      "get": {
+        "summary": "Download original source",
+        "operationId": "get_documents_id_download",
+        "responses": {
+          "200": {
+            "description": "Original file attachment",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Validation, configuration or service error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/auth/csrf": {
+      "get": {
+        "summary": "Obtain CSRF token",
+        "operationId": "get_auth_csrf",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    },
+                    "headerName": {
+                      "type": "string"
+                    }
+                  },
+                  "required": []
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Create account and sign in",
+        "operationId": "post_auth_register",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Registration"
+              }
+            }
+          }
+        },
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Sign in and rotate session",
+        "operationId": "post_auth_login",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
+          }
+        },
+        "security": [],
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Current account",
+        "operationId": "get_auth_me",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Invalidate session",
+        "operationId": "post_auth_logout",
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/databases": {
+      "get": {
+        "summary": "List own databases",
+        "operationId": "get_databases",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Database"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create PostgreSQL database",
+        "operationId": "post_databases",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDatabase"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/databases/tables": {
+      "get": {
+        "summary": "List tables across own databases",
+        "operationId": "get_databases_tables",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Table"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}/retry": {
+      "post": {
+        "summary": "Retry failed database provisioning",
+        "operationId": "post_databases_database_retry",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/databases/{database}/tables": {
+      "get": {
+        "summary": "List tables in owned database",
+        "operationId": "get_databases_database_tables",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Table"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create a table",
+        "operationId": "post_databases_database_tables",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Table"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTable"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/databases/{database}/tables/{table}/rows": {
+      "get": {
+        "summary": "Read rows",
+        "operationId": "get_databases_database_tables_table_rows",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rows"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000,
+              "default": 0
+            }
+          }
+        ]
+      },
+      "post": {
+        "summary": "Insert row",
+        "operationId": "post_databases_database_tables_table_rows",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RowWrite"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      }
+    },
+    "/databases/{database}/tables/{table}/rows/{row}": {
+      "put": {
+        "summary": "Replace existing row values",
+        "operationId": "put_databases_database_tables_table_rows_row",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RowWrite"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "row",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete local row",
+        "operationId": "delete_databases_database_tables_table_rows_row_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "row",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Confirmation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}": {
+      "patch": {
+        "summary": "Rename database or connection",
+        "operationId": "patch_databases_database_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Rename"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete local database or disconnect external source",
+        "operationId": "delete_databases_database_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Confirmation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/connect": {
+      "post": {
+        "summary": "Connect PostgreSQL and discover tables",
+        "operationId": "post_databases_connect",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionWrite"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}/connection": {
+      "put": {
+        "summary": "Replace connection after validating access",
+        "operationId": "put_databases_database_connection",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionWrite"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}/refresh": {
+      "post": {
+        "summary": "Refresh connected table metadata",
+        "operationId": "post_databases_database_refresh",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Database"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}/tables/{table}": {
+      "patch": {
+        "summary": "Rename local table",
+        "operationId": "patch_databases_database_tables_table_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Rename"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete local table",
+        "operationId": "delete_databases_database_tables_table_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Confirmation"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}/tables/{table}/columns": {
+      "post": {
+        "summary": "Add local column",
+        "operationId": "post_databases_database_tables_table_columns",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Column"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/databases/{database}/tables/{table}/columns/{column}": {
+      "patch": {
+        "summary": "Rename local column",
+        "operationId": "patch_databases_database_tables_table_columns_column_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "column",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableList"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameColumn"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete local column and its values",
+        "operationId": "delete_databases_database_tables_table_columns_column_",
+        "parameters": [
+          {
+            "name": "X-CSRF-TOKEN",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "GET /auth/csrf using the same cookie jar. Refresh after successful login/register/logout."
+          },
+          {
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "table",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "column",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Success"
+          },
+          "default": {
+            "description": "Error: 400 validation, 401 sign-in required, 403 CSRF/origin, 404 unknown or not owned, 409 duplicate/cap, 429 rate limit, 503 dependency failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Confirmation"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Plan": {
+        "type": "object",
+        "required": [
+          "mode",
+          "intent",
+          "limit"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "SQL",
+              "RAG",
+              "HYBRID"
+            ]
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "PURCHASES",
+              "CUSTOMERS",
+              "PRODUCTS",
+              "REVIEWS",
+              "INVENTORY"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 80
+          },
+          "minPrice": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "customerId": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "productId": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      },
+      "QueryRequest": {
+        "type": "object",
+        "required": [
+          "question",
+          "mode"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 2000
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "SQL",
+              "RAG",
+              "HYBRID"
+            ]
+          },
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Optional owned table restriction. Omit to discover and join up to two personal tables using AUTO or PERSONAL. Explicit table selection requires SQL or AUTO mode and no guided plan."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "PERSONAL",
+              "DEMO"
+            ],
+            "default": "AUTO",
+            "description": "AUTO discovers own table schemas before routing. PERSONAL restricts to own databases; DEMO explicitly selects sample commerce. Explicit guided plans are demo-only."
+          }
+        }
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "chunk": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "productId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "customerId": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "Result": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string"
+          },
+          "answer": {
+            "type": "string"
+          },
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          },
+          "traces": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "shard": {
+                  "type": "string"
+                },
+                "bucket": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "sql": {
+                  "type": "string"
+                },
+                "parameters": {
+                  "type": "object",
+                  "additionalProperties": true
+                },
+                "rows": {
+                  "type": "integer"
+                },
+                "durationMs": {
+                  "type": "integer"
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "plan": {
+            "$ref": "#/components/schemas/ResultPlan"
+          },
+          "cached": {
+            "type": "boolean"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "durationMs": {
+            "type": "integer"
+          },
+          "answerMethod": {
+            "type": "string",
+            "enum": [
+              "GEMINI",
+              "OPENAI",
+              "DETERMINISTIC_SQL",
+              "NO_EVIDENCE",
+              "EVIDENCE_ONLY"
+            ]
+          },
+          "tableId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Present when one personal table was used. requestTableId records an explicit restriction; automatic queries may use two tables."
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "PERSONAL",
+              "DEMO",
+              "DOCUMENTS"
+            ]
+          },
+          "requestSource": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "PERSONAL",
+              "DEMO"
+            ]
+          },
+          "requestTableId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Table"
+            }
+          }
+        }
+      },
+      "QueryJob": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "question": {
+            "type": "string"
+          },
+          "mode": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "COMPLETE",
+              "PARTIAL",
+              "FAILED"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "result": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Result"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "fingerprint": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "embeddingModel": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "productId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "customerId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "attempts": {
+            "type": "integer"
+          },
+          "chunks": {
+            "type": "integer"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextDispatch": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "status",
+          "message"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "Registration": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 80
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 12,
+            "maxLength": 72,
+            "description": "Maximum 72 UTF-8 bytes."
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
+      },
+      "Login": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "maxLength": 72
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CreateDatabase": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9 _-]{0,59}$"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Column": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,30}$"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "INTEGER",
+              "DECIMAL",
+              "BOOLEAN",
+              "DATE"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "CreateTable": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9 _-]{0,59}$"
+          },
+          "columns": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "$ref": "#/components/schemas/Column"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "columns"
+        ]
+      },
+      "Database": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CREATING",
+              "READY",
+              "FAILED"
+            ]
+          },
+          "tableCount": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "EXTERNAL"
+            ]
+          },
+          "connectionInfo": {
+            "type": "string"
+          },
+          "schema": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "tableCount",
+          "createdAt"
+        ]
+      },
+      "Table": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "databaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "databaseName": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Column"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "databaseId",
+          "name",
+          "columns"
+        ]
+      },
+      "RowWrite": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "object",
+            "maxProperties": 20,
+            "additionalProperties": true,
+            "description": "All defined fields; omit optional fields for NULL. Text <=4000 characters. Integer is signed bigint; decimal(18,4); date YYYY-MM-DD. PUT replaces all field values."
+          }
+        },
+        "required": [
+          "values"
+        ]
+      },
+      "Rows": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer",
+            "enum": [
+              50
+            ]
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "Connected preview exceeded 1000 records; total refers to preview count."
+          }
+        },
+        "required": [
+          "rows",
+          "total",
+          "page",
+          "pageSize"
+        ]
+      },
+      "ResultPlan": {
+        "type": "object",
+        "required": [
+          "mode",
+          "intent",
+          "limit"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "SQL",
+              "RAG",
+              "HYBRID"
+            ]
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "PURCHASES",
+              "CUSTOMERS",
+              "PRODUCTS",
+              "REVIEWS",
+              "INVENTORY",
+              "CUSTOM_TABLE"
+            ]
+          },
+          "category": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 80
+          },
+          "minPrice": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "customerId": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "productId": {
+            "type": "integer",
+            "nullable": true,
+            "minimum": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      },
+      "Rename": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9 _-]{0,59}$"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "Confirmation": {
+        "type": "object",
+        "required": [
+          "confirmation"
+        ],
+        "properties": {
+          "confirmation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Exact current name of the selected object, or row ID. Required for deletion."
+          }
+        }
+      },
+      "RenameColumn": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,30}$"
+          }
+        }
+      },
+      "ConnectionWrite": {
+        "type": "object",
+        "required": [
+          "name",
+          "connectionUrl",
+          "schema"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9 _-]{0,59}$"
+          },
+          "connectionUrl": {
+            "type": "string",
+            "maxLength": 2048,
+            "writeOnly": true,
+            "description": "PostgreSQL URI; encrypted at rest, never returned. Only sslmode is accepted. Host must be allowlisted."
+          },
+          "schema": {
+            "type": "string",
+            "default": "public",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,62}$"
+          }
+        }
+      },
+      "TableList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Table"
+        }
+      }
+    },
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "SHARDQUERY_SESSION"
+      }
+    }
+  },
+  "security": [
+    {
+      "sessionCookie": []
+    }
+  ]
+}

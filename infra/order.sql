@@ -1,0 +1,10 @@
+CREATE TABLE orders (order_id bigint NOT NULL, customer_id bigint NOT NULL CHECK(customer_id BETWEEN 1 AND 2147483647), bucket integer NOT NULL CHECK(bucket=customer_id%3), ordered_at timestamptz NOT NULL, status varchar(30) NOT NULL, total_amount numeric(12,2) NOT NULL CHECK(total_amount>=0), PRIMARY KEY(bucket,order_id)) PARTITION BY LIST(bucket);
+CREATE TABLE order_items (item_id bigint PRIMARY KEY, order_id bigint NOT NULL, bucket integer NOT NULL, product_id bigint NOT NULL, quantity integer NOT NULL CHECK(quantity>0), unit_price numeric(12,2) NOT NULL CHECK(unit_price>=0), FOREIGN KEY(bucket,order_id) REFERENCES orders(bucket,order_id));
+CREATE INDEX order_items_product_idx ON order_items(product_id,unit_price);
+CREATE TABLE payments (payment_id bigint PRIMARY KEY, order_id bigint NOT NULL, bucket integer NOT NULL, amount numeric(12,2), status varchar(30), FOREIGN KEY(bucket,order_id) REFERENCES orders(bucket,order_id));
+CREATE TABLE orders_b0 PARTITION OF orders FOR VALUES IN (0);
+CREATE TABLE orders_b1 PARTITION OF orders FOR VALUES IN (1);
+CREATE TABLE orders_b2 PARTITION OF orders FOR VALUES IN (2);
+INSERT INTO orders VALUES (1001,101,2,'2026-01-10T10:00:00Z','DELIVERED',72900),(1002,102,0,'2026-01-12T10:00:00Z','DELIVERED',58900),(1003,103,1,'2026-01-15T10:00:00Z','DELIVERED',42900),(1004,104,2,'2026-01-18T10:00:00Z','DELIVERED',94900),(1005,105,0,'2026-01-20T10:00:00Z','CANCELLED',72900),(1006,101,2,'2026-02-01T10:00:00Z','DELIVERED',2499),(1007,106,1,'2026-02-02T10:00:00Z','DELIVERED',58900);
+INSERT INTO order_items VALUES (1,1001,2,201,1,72900),(2,1002,0,202,1,58900),(3,1003,1,203,1,42900),(4,1004,2,204,1,94900),(5,1005,0,201,1,72900),(6,1006,2,205,1,2499),(7,1007,1,202,1,58900);
+INSERT INTO payments SELECT order_id,order_id,bucket,total_amount,CASE WHEN status='CANCELLED' THEN 'REFUNDED' ELSE 'PAID' END FROM orders;

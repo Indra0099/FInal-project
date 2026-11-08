@@ -1,0 +1,80 @@
+purpose:
+  stands_in_for: Gemini OpenAI-compatible chat completions and embedding response envelopes, with deterministic fixtures. Retains the original simulation filenames for reproducibility.
+  unblocks: Local HTTP integration, retry handling, Kafka ingestion and Qdrant association testing without an API key.
+assumptions:
+  - id: provider-contract
+    status: unknown
+    claim: The original OpenAI account/model contract can serve the requested strict JSON and embedding calls.
+    reason: At the initial OpenAI implementation stage no key was available. That provider was replaced before live use; this historical OpenAI-specific assumption remains unknown. Gemini evidence is recorded separately.
+    verification: Six caller integration tests passed against real PostgreSQL, Kafka, Redis and Qdrant with this local HTTP simulation. This does not verify the live provider. Owner mock search skipped because Postman CLI is signed out. Official OpenAI schema pages were read.
+    source: https://developers.openai.com/api/docs/guides/structured-outputs
+    updated_at: '2026-11-08'
+  - id: caller-contract
+    status: supported
+    claim: The caller handles the fixture chat/embedding envelopes, bounded 429 retries, unknown citations and exact product/customer filtering.
+    verification: InfrastructureIntegrationTest passed all six methods. Observed simulation events included embeddings, chat completions and two 429 responses. The normal application never used the mock URL.
+    reason: The original caller passed the recorded simulation scenarios. This supports caller behavior only, not live model compatibility or semantic quality.
+    source: backend/src/test/java/com/shardquery/InfrastructureIntegrationTest.java; postman/mocks/openai-contract/default.js
+    updated_at: '2026-11-08'
+  - id: gemini-caller-contract
+    status: supported
+    claim: The updated caller handles Gemini-compatible fixtures including 3072-value embeddings, normalization, bounded retries and source filtering.
+    reason: The real caller and infrastructure ran against the updated local HTTP simulation. Account access was not known at that stage; later live evidence is recorded separately.
+    verification: On 2026-11-08 the full suite passed 22 tests with zero failures, errors or skips. Simulation events showed three embeddings, chat planning and synthesis, unknown-citation rejection and two 429 attempts. The mock validates Gemini model names and max_tokens/reasoning_effort fields.
+    source: backend/src/test/java/com/shardquery/GeminiEmbeddingTest.java; backend/src/test/java/com/shardquery/InfrastructureIntegrationTest.java; postman/mocks/openai-contract/default.js
+    updated_at: '2026-11-08'
+  - id: gemini-live-account
+    status: supported
+    claim: On 2026-11-08 the selected personal project displayed Free tier and served the configured Gemini chat and embedding models for the sample scenarios.
+    reason: Personal AI Studio showed Free tier before using its existing key, and actual Google calls completed. This supports observed access for that project and time, not other accounts, future pricing, or general model accuracy.
+    verification: The earlier documentation-only check left access unknown. Subsequently, AI Studio tier was observed and live catalogue SQL completed with three products; five sample documents were embedded; policy RAG and hybrid purchases/reviews completed with valid source IDs. No billing was enabled. Raw credentials are excluded from evidence and source archives.
+    source: docs/VERIFICATION.md; docs/sample-gemini-results.json; https://ai.google.dev/gemini-api/docs/openai
+    updated_at: '2026-11-08'
+  - id: gemini-embedding-index-required
+    status: contradicted
+    claim: Every Gemini-compatible embedding row includes an index field.
+    reason: Real responses omitted index, unlike the original simulation fixture. The parser and fixture now accept positional batches without mixing indexed and positional entries.
+    verification: A live two-input batch returned native 3072-dimensional vectors without indexes. Comparison with individual requests confirmed the input order for those two texts. Six embedding unit tests cover both envelopes and invalid batches; live indexing produced five READY documents.
+    source: backend/src/main/java/com/shardquery/ai/GeminiGateway.java; backend/src/test/java/com/shardquery/GeminiEmbeddingTest.java; docs/VERIFICATION.md
+    updated_at: '2026-11-08'
+  - id: citation-correction-caller
+    status: supported
+    claim: The caller retries an invalid citation answer once using the original evidence and rejects a persistently unknown source.
+    reason: A live policy answer initially produced a citation-list mismatch; structured JSON alone does not guarantee matching references. The caller now validates and bounds correction.
+    verification: The final 32-test suite passed with seven infrastructure methods. The HTTP simulation emitted six successful chat envelopes, two 429 responses and three embedding responses. A formatting mismatch was corrected on its second call; persistent D999 citations were rejected. Separate live RAG and hybrid queries completed without warnings after this change.
+    source: backend/src/main/java/com/shardquery/ai/CitationValidator.java; backend/src/test/java/com/shardquery/InfrastructureIntegrationTest.java; docs/sample-gemini-results.json
+    updated_at: '2026-11-08'
+  - id: authenticated-workspace-contract
+    status: supported
+    claim: Authenticated callers retain owner-scoped data and personal table plans compile into bounded parameterized SELECT queries.
+    reason: Real infrastructure and session HTTP tests ran with the explicitly labelled Gemini fixture. Separate Firefox and live Gemini checks used fictional UI-entered records.
+    verification: The updated suite passed 35 tests with zero failures or skips, covering registration, login/logout, CSRF, session rotation, cross-account access rejection, document retrieval isolation and actual database/table/row operations. Personal-table plans preserve their actual limit and table context.
+    source: backend/src/test/java/com/shardquery/InfrastructureIntegrationTest.java; docs/VERIFICATION.md
+    updated_at: '2026-11-08'
+  - id: personal-auto-routing
+    status: supported
+    claim: Automatic source selection can plan and execute a bounded student-to-fees join across two owned PostgreSQL databases without falling back to commerce data.
+    reason: Schema discovery and plan validation are owner scoped; real rows are joined and filtered deterministically. The HTTP simulation verifies caller behavior, and separate live Gemini and Firefox checks verify the demonstrated query.
+    verification: The full suite passed 43 tests with zero failures or skips, including 11 infrastructure methods. A foreign table reference was rejected. Live Gemini returned one fictional student above 150000 and excluded the equality boundary. A commerce query with personal schemas present still returned three sample products. Original user record hashes were unchanged.
+    source: backend/src/test/java/com/shardquery/PersonalQueryEngineTest.java; backend/src/test/java/com/shardquery/InfrastructureIntegrationTest.java; docs/VERIFICATION.md; docs/sample-student-fees-result.json
+    updated_at: '2026-11-08'
+  - id: external-postgres-management
+    status: supported
+    claim: Owned local databases support guarded management, while connected PostgreSQL data is queried read-only and disconnect only removes local metadata.
+    reason: Real PostgreSQL and labelled Gemini simulation tests cover lifecycle, encryption, owner isolation, query pushdown and source preservation. Separate live Gemini checks used two disposable connection URLs and a SELECT-only role.
+    verification: Full suite passed 50 tests with no failures or skips. A 1005-row connected table returned 50 correctly filtered and sorted rows. Firefox verified rename, optional-column addition, cancellation safeguards and connected output. HTTP disconnect preserved both source tables before fixture teardown. Existing user record hashes were unchanged.
+    source: backend/src/test/java/com/shardquery/DatabaseConnectionTest.java; backend/src/test/java/com/shardquery/InfrastructureIntegrationTest.java; docs/VERIFICATION.md; docs/sample-connected-query-result.json
+    updated_at: '2026-11-08'
+fingerprints:
+  - id: initial-build
+    date: '2026-11-08'
+    commit: uncommitted initial implementation
+    cli: '1.80.0'
+  - id: gemini-update
+    date: '2026-11-08'
+    commit: uncommitted Gemini provider change
+    cli: '1.80.0'
+  - id: gemini-live-and-citation-fix
+    date: '2026-11-08'
+    commit: local source directory without Git metadata; Gemini embedding and citation validation fixes
+    cli: '1.80.0'

@@ -1,0 +1,3 @@
+FICTIONAL DEMO REVIEW — not a real customer's statement.
+Customer: Asha Rao (101). Product: AtlasBook Pro 14 (201).
+I bought this laptop for programming classes and Java projects. The keyboard is comfortable and the chassis feels sturdy. In my personal use the battery was satisfactory for lectures, although I did not measure runtime scientifically. The fan becomes noticeable while compiling large projects. I would recommend it to students who value build quality and portability, while reminding them that sustained heavy workloads are audible. This review is an opinion, not a benchmark or a warranty promise.

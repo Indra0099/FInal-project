@@ -1,0 +1,124 @@
+{
+  "notice": "Actual Gemini response over fictional disposable student records. No real student data.",
+  "query": {
+    "id": "5081c7c5-3c43-4626-a773-63e01827ba49",
+    "question": "find the students in database whose fees is above ₹150000",
+    "mode": "AUTO",
+    "status": "COMPLETE",
+    "createdAt": "2026-11-08T04:53:05.933359Z",
+    "completedAt": "2026-11-08T04:53:38.932121Z",
+    "error": null,
+    "result": {
+      "mode": "SQL",
+      "answer": "Asha Rao, who is in the CSE group, has a recorded fee of 220000, which is above 150000. This information is based on the provided database records.",
+      "rows": [
+        {
+          "students / student._row_id": 1,
+          "students / student.id": "S1",
+          "students / student.name": "Asha Rao",
+          "students / student.group": "CSE",
+          "Students fees / student fees._row_id": 1,
+          "Students fees / student fees.id": "F10",
+          "Students fees / student fees.branch": "CSE",
+          "Students fees / student fees.student_id": "S1",
+          "Students fees / student fees.fees": "220000"
+        }
+      ],
+      "sources": [],
+      "traces": [
+        {
+          "shard": "students / student",
+          "bucket": null,
+          "sql": "SELECT * FROM \"t_897965d33ca54bd8be4dfacc58c2f743\" ORDER BY _row_id LIMIT ?",
+          "parameters": {
+            "limit": 1001
+          },
+          "rows": 2,
+          "durationMs": 7,
+          "status": "COMPLETE"
+        },
+        {
+          "shard": "Students fees / student fees",
+          "bucket": null,
+          "sql": "SELECT * FROM \"t_453a7fd9e55c46d9a5c092fbc61395d9\" ORDER BY _row_id LIMIT ?",
+          "parameters": {
+            "limit": 1001
+          },
+          "rows": 2,
+          "durationMs": 6,
+          "status": "COMPLETE"
+        }
+      ],
+      "warnings": [],
+      "plan": {
+        "mode": "SQL",
+        "intent": "CUSTOM_TABLE",
+        "category": null,
+        "minPrice": null,
+        "customerId": null,
+        "productId": null,
+        "limit": 50,
+        "explanation": "Routed to personal data by joining the student table to the student fees table using the student_id relationship to filter for fees greater than 150000. Records were read from the selected personal tables; filtering, association and sorting ran in the application before the final result limit."
+      },
+      "cached": false,
+      "generatedAt": "2026-11-08T04:53:38.923945972Z",
+      "durationMs": 32979,
+      "answerMethod": "GEMINI",
+      "dataSource": "PERSONAL",
+      "requestSource": "AUTO",
+      "tables": [
+        {
+          "id": "897965d3-3ca5-4bd8-be4d-facc58c2f743",
+          "databaseId": "1c00dec4-dca8-4329-85e2-0deb60908823",
+          "databaseName": "students",
+          "name": "student",
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "required": true
+            },
+            {
+              "name": "name",
+              "type": "TEXT",
+              "required": true
+            },
+            {
+              "name": "group",
+              "type": "TEXT",
+              "required": true
+            }
+          ]
+        },
+        {
+          "id": "453a7fd9-e55c-46d9-a5c0-92fbc61395d9",
+          "databaseId": "efd801eb-c49a-4536-acf6-aac35d894813",
+          "databaseName": "Students fees",
+          "name": "student fees",
+          "columns": [
+            {
+              "name": "id",
+              "type": "TEXT",
+              "required": true
+            },
+            {
+              "name": "branch",
+              "type": "TEXT",
+              "required": true
+            },
+            {
+              "name": "student_id",
+              "type": "TEXT",
+              "required": true
+            },
+            {
+              "name": "fees",
+              "type": "INTEGER",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

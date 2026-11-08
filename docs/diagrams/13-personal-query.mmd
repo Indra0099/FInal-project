@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor User
+    participant UI as Query workspace
+    participant API as QueryService
+    participant WS as WorkspaceService
+    participant AI as Gemini
+    participant DB as Owned PostgreSQL database
+    User->>UI: Select table and ask a question
+    UI->>API: POST queries with tableId and SQL mode
+    API->>API: Persist job with authenticated owner
+    API-->>UI: 202 and job ID
+    API->>WS: Question, table ID and owner ID
+    WS->>WS: Validate table belongs to owner
+    WS->>AI: Question and column definitions
+    AI-->>WS: Structured filter and sort plan
+    WS->>WS: Validate fields, operators, types and limits
+    WS->>DB: Parameterized SELECT in read-only transaction
+    DB-->>WS: Actual rows
+    WS-->>API: Rows and SQL trace
+    API->>AI: Summarize retrieved evidence
+    AI-->>API: Answer
+    API->>API: Save owner-scoped job result
+    UI->>API: Poll own job
+    API-->>UI: Answer, records, warnings and trace

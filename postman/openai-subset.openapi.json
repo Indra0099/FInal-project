@@ -1,0 +1,73 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Gemini OpenAI-compatible contract subset for ShardQuery tests",
+    "version": "1.0.0",
+    "description": "Test-only subset of chat completions and embeddings. Derived from the official API documentation; no live quality or account-access guarantee."
+  },
+  "servers": [
+    {
+      "url": "https://api.openai.com"
+    }
+  ],
+  "paths": {
+    "/v1/chat/completions": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Provider response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or quota error"
+          }
+        }
+      }
+    },
+    "/v1/embeddings": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Provider response envelope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or quota error"
+          }
+        }
+      }
+    }
+  }
+}
